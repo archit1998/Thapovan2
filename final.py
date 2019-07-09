@@ -798,21 +798,38 @@ def get_metric_name (year,ticker,value,a_metric,quarter='Q1'):
                 flag_not_found = 0
         if(flag_not_found == 1 and flag == 1):
             if abs(value)>=1:
-                #when value is greater than 1
-                valueo= "'"+str(value)+"'" #orginal value
-                value1 = "'"+str(int(value))+".%"+"'" # integered value
-                value2 = "'"+str(round(value, 2))+"%"+"'" #value when rounded upto 2
-                value3 = "'"+str(-1*int(value))+".%"+"'" #integered with negation
-                value4 = "'"+str(-1*round(value,2))+"%"+"'" # round upto 2 with negation
-                select_stmt1 = F"select distinct metric_name, subsidiary_id from dbo.cc_actual_metrics_consolidated where "                     F"metric_name not in (select id from [adm_fnSplitter]('{param}')) and "                     F"ticker_code={ticker_code} and financial_year = {year} and quarter = {quarter} and "                     F"(value like {valueo} or value like {value1} or value like {value2} or value like {value3} or value like {value4})"
-                metric_list=[]
-                subs_list = []
-                cursor.execute(select_stmt1)
-                row = cursor.fetchone()
-                while row:
-                    metric_list.append(row.metric_name)
-                    subs_list.append(row.subsidiary_id)
+                if abs(value) in [1,2,3,4,5,6,7,8,9] and type(value) is not float:
+                    valueo= "'"+str(value)+"'" #orginal value
+                    value3 = "'"+str(-1*int(value))+".%"+"'" #integered with negation
+                    if(len(possible_list)>2 and flag==1):
+                        select_stmt1 = F"select distinct metric_name, subsidiary_id from dbo.cc_actual_metrics_consolidated where "                         F"metric_name in (select id from [adm_fnSplitter]('{param}')) and "                         F"ticker_code={ticker_code} and financial_year = {year} and quarter = {quarter} and "                         F"(value like {valueo} or value like {value3})"   
+                    else:
+                        select_stmt1 = F"select distinct metric_name, subsidiary_id from dbo.cc_actual_metrics_consolidated where "                         F"ticker_code={ticker_code} and financial_year = {year} and quarter = {quarter} and "                         F"(value like {valueo} or value like {value3})"
+                    subs_list = []    
+                    metric_list=[]
+                    cursor.execute(select_stmt1)
                     row = cursor.fetchone()
+                    while row:
+                        flag_not_found = 0
+                        metric_list.append(row.metric_name)
+                        subs_list.append(row.subsidiary_id)
+                        row = cursor.fetchone()
+                else:        
+                #when value is greater than 1
+                    valueo= "'"+str(value)+"'" #orginal value
+                    value1 = "'"+str(int(value))+".%"+"'" # integered value
+                    value2 = "'"+str(round(value, 2))+"%"+"'" #value when rounded upto 2
+                    value3 = "'"+str(-1*int(value))+".%"+"'" #integered with negation
+                    value4 = "'"+str(-1*round(value,2))+"%"+"'" # round upto 2 with negation
+                    select_stmt1 = F"select distinct metric_name, subsidiary_id from dbo.cc_actual_metrics_consolidated where "                     F"metric_name not in (select id from [adm_fnSplitter]('{param}')) and "                     F"ticker_code={ticker_code} and financial_year = {year} and quarter = {quarter} and "                     F"(value like {valueo} or value like {value1} or value like {value2} or value like {value3} or value like {value4})"
+                    metric_list=[]
+                    subs_list = []
+                    cursor.execute(select_stmt1)
+                    row = cursor.fetchone()
+                    while row:
+                        metric_list.append(row.metric_name)
+                        subs_list.append(row.subsidiary_id)
+                        row = cursor.fetchone()
             else:
                 #if value less than 1
                 valueo= "'"+str(value*100)+"'" #orginal with 100 multiplied
